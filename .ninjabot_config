@@ -77,5 +77,18 @@
       "ignore1",
       "ignore2"
     ]
+  },
+
+  "web.grok": {
+	  /* grok cookies */
+	  "ck_session": "",
+	  "ck_discourse": "",
+	  "ck_t": "",
+	  /* channel to send new forum post notifications to */
+	  "notifychan": "##ncss_challenge",
+	  /* threads to ignore */
+	  "ignore_threads": [],
+	  /* regexp of categories to match */
+	  "category_regexp": "^ch15-"
   }
 }
