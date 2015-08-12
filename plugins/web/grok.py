@@ -2,6 +2,8 @@
 Polls the grok forums for new posts
 """
 from dateutil.parser import parse as parse_date
+from dateutil.relativedelta import relativedelta
+from datetime import tzinfo, timedelta
 import requests
 import re
 
@@ -36,7 +38,7 @@ class Plugin(object):
             if re.search(self.catRegexp, cat['slug']):
                 self.categoryIDs.append(cat['id'])
                 self.categoryNames[cat['id']] = cat['name']
-                print("Found cat id",cat['id'],"-",cat['name'])
+                #print("Found cat id",cat['id'],"-",cat['name'])
 
     def _forEachLatestPost(self, during, after=lambda: False):
         global DISCOURSE_FORUM_BASE
@@ -52,13 +54,11 @@ class Plugin(object):
     # so there isn't a huge spam of 'new' posts on bot startup.
     def _resetSeenPosts(self):
         self._forEachLatestPost(lambda post: self.seenPosts.update({self._getPostUUID(post): True}))
-        print("*** SEEN POSTS ***")
-        print(self.seenPosts)
         self.loaded = True
 
     def getPostMsg(self,json):
         is_new = json['posts_count'] == 1
-        time = parse_date(json['created_at'] if is_new else json['last_posted_at'])
+        time = parse_date(json['created_at'] if is_new else json['last_posted_at']) + relativedelta(hours=14)
         print(time)
         user = json['last_poster_username'][0] + '\u200D' + json['last_poster_username'][1:]
         url = 'https://forum.groklearning.com/t/-/{0}/{1}'.format(json['id'], json['posts_count'])
@@ -79,14 +79,14 @@ class Plugin(object):
                     url=url
                 )
 
-    def trigger_grokpoll(self, msg):
-        "Force a poll of the grok forum"
-        self.timer_60()
-        self.bot.privmsg(msg.channel, "Polled")
+#    def trigger_grokpoll(self, msg):
+#        "Force a poll of the grok forum"
+#        self.timer_60()
+#        self.bot.privmsg(msg.channel, "Polled")
 
     def timer_60(self):
         if not self.loaded: return
-        print("Polling...")
+        #print("Polling...")
         def _onPost(json):
             if json['category_id'] not in self.categoryIDs: return
             if json['id'] in self.ignoreThreads: return
@@ -98,6 +98,6 @@ class Plugin(object):
                 self.bot.privmsg(self.notifyChan, "New forum post in {0}".format(self.getPostMsg(json)))
 
         self._forEachLatestPost(_onPost)
-        print("Done.")
+        #print("Done.")
 
 
